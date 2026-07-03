@@ -19,26 +19,29 @@ canvas {
     background: linear-gradient(to bottom, #000033, #000011);
 }
 
+/* Controls */
 .controls {
     position: absolute;
     top: 20px;
     left: 20px;
     display: flex;
-    gap: 15px;
+    gap: 10px;
     align-items: center;
     z-index: 10;
+    flex-wrap: wrap;
 }
 
 button {
-    padding: 12px 20px;
+    padding: 10px 16px;
     border: none;
     border-radius: 5px;
     font-family: 'Courier New', monospace;
     font-weight: bold;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
     transition: all 0.3s ease;
     box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    white-space: nowrap;
 }
 
 .warp-btn {
@@ -52,11 +55,6 @@ button {
     transform: scale(1.05);
 }
 
-.warp-btn:active {
-    transform: scale(0.98);
-    box-shadow: 0 0 40px rgba(0, 255, 255, 1);
-}
-
 .pause-btn {
     background: linear-gradient(135deg, #ff6600, #ff3300);
     color: #fff;
@@ -64,7 +62,7 @@ button {
 }
 
 .pause-btn:hover {
-    box-shadow: 0 0 25px rgba(255, 102, 0, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 25px rgba(255, 102, 0, 0.8);
     transform: scale(1.05);
 }
 
@@ -75,23 +73,62 @@ button {
 }
 
 .reset-btn:hover {
-    box-shadow: 0 0 25px rgba(0, 255, 0, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 25px rgba(0, 255, 0, 0.8);
     transform: scale(1.05);
 }
 
+.screensaver-btn {
+    background: linear-gradient(135deg, #ff00ff, #ff0099);
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
+}
+
+.screensaver-btn:hover {
+    box-shadow: 0 0 25px rgba(255, 0, 255, 0.8);
+    transform: scale(1.05);
+}
+
+.settings-btn {
+    background: linear-gradient(135deg, #ffaa00, #ff6600);
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 170, 0, 0.8);
+}
+
+.settings-btn:hover {
+    box-shadow: 0 0 25px rgba(255, 170, 0, 0.8);
+    transform: scale(1.05);
+}
+
+.fps-btn {
+    background: linear-gradient(135deg, #00aa88, #00ff88);
+    color: #000;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+}
+
+.fps-btn:hover {
+    box-shadow: 0 0 25px rgba(0, 255, 136, 0.8);
+    transform: scale(1.05);
+}
+
+/* Stats */
 .stats {
+    position: absolute;
+    top: 20px;
+    right: 20px;
     display: flex;
-    gap: 30px;
-    margin-left: 20px;
+    gap: 20px;
     padding: 15px 25px;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.8);
     border-radius: 5px;
     border: 2px solid rgba(0, 255, 255, 0.3);
+    z-index: 10;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .stat {
     color: #00ffff;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
@@ -101,6 +138,125 @@ button {
     margin-left: 5px;
 }
 
+/* Settings Panel */
+.settings-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.settings-panel.hidden {
+    display: none;
+    opacity: 0;
+}
+
+.settings-content {
+    background: rgba(0, 20, 40, 0.9);
+    border: 2px solid rgba(0, 255, 255, 0.5);
+    border-radius: 10px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 0 40px rgba(0, 255, 255, 0.3);
+}
+
+.settings-content h2 {
+    color: #00ffff;
+    margin-bottom: 25px;
+    text-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+    font-size: 24px;
+}
+
+.settings-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.settings-group label {
+    color: #00ff88;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.settings-group input[type="range"] {
+    width: 100%;
+    height: 6px;
+    background: rgba(0, 255, 255, 0.2);
+    outline: none;
+    border-radius: 3px;
+    -webkit-appearance: none;
+}
+
+.settings-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(135deg, #00ffff, #0099ff);
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+.settings-group input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(135deg, #00ffff, #0099ff);
+    cursor: pointer;
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+.settings-group select {
+    padding: 10px;
+    background: rgba(0, 50, 80, 0.8);
+    color: #00ffff;
+    border: 1px solid rgba(0, 255, 255, 0.5);
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+}
+
+.settings-group select option {
+    background: #000033;
+    color: #00ffff;
+}
+
+.settings-group input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #00ffff;
+}
+
+.close-btn {
+    width: 100%;
+    margin-top: 20px;
+    background: linear-gradient(135deg, #ff3300, #ff0000);
+    color: #fff;
+    padding: 12px;
+    font-size: 14px;
+}
+
+.close-btn:hover {
+    box-shadow: 0 0 25px rgba(255, 51, 0, 0.8);
+}
+
+/* Info Panel */
 .info-panel {
     position: absolute;
     bottom: 30px;
@@ -140,27 +296,136 @@ button {
     color: #00ffff;
 }
 
+/* Loading Screen */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000011;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    transition: opacity 0.5s ease;
+}
+
+.loading-screen.hidden {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(0, 255, 255, 0.2);
+    border-top: 4px solid #00ffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-screen p {
+    color: #00ffff;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    margin: 20px 0;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+.loading-bar {
+    width: 300px;
+    height: 10px;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 5px;
+    margin: 20px auto;
+    overflow: hidden;
+}
+
+.loading-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #00ffff, #0099ff);
+    width: 0%;
+    transition: width 0.2s ease;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+/* Screenshot Notification */
+.screenshot-notif {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #00ff00, #00cc00);
+    color: #000;
+    padding: 15px 30px;
+    border-radius: 5px;
+    font-weight: bold;
+    z-index: 100;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+    animation: slideUp 2s ease;
+}
+
+.screenshot-notif.hidden {
+    display: none;
+}
+
+@keyframes slideUp {
+    0% {
+        transform: translateX(-50%) translateY(100px);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(-50%) translateY(-100px);
+        opacity: 0;
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .controls {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
+        top: 10px;
+        left: 10px;
+        gap: 5px;
+    }
+
+    button {
+        padding: 8px 12px;
+        font-size: 10px;
     }
 
     .stats {
-        flex-direction: column;
+        top: 10px;
+        right: 10px;
         gap: 10px;
-        margin-left: 0;
+        padding: 10px 15px;
+        font-size: 10px;
     }
 
     .info-panel {
         display: none;
     }
 
-    button {
-        width: 100%;
-        padding: 10px;
-        font-size: 12px;
+    .settings-content {
+        padding: 20px;
+        max-width: 90%;
     }
 }
