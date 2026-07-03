@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intergalactic Screensaver</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="controls">
+        <button id="warpButton" class="warp-btn">⚡ ENGAGE WARP DRIVE</button>
+        <button id="pauseButton" class="pause-btn">⏸ PAUSE</button>
+        <button id="resetButton" class="reset-btn">🔄 RESET</button>
+        <div class="stats">
+            <div class="stat">Speed: <span id="speedValue">1.0x</span></div>
+            <div class="stat">Stars: <span id="starCount">0</span></div>
+            <div class="stat">Warp Level: <span id="warpLevel">0</span></div>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <h1>INTERGALACTIC SCREENSAVER</h1>
+        <p>Navigate the cosmos with warp drive technology</p>
+        <div class="instructions">
+            <p><strong>⚡ ENGAGE WARP DRIVE:</strong> Click to accelerate through space</p>
+            <p><strong>⏸ PAUSE:</strong> Halt all movement</p>
+            <p><strong>🔄 RESET:</strong> Return to starting position</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
