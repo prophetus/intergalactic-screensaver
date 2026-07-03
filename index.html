@@ -3,37 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intergalactic Screensaver - Ultimate Edition</title>
+    <title>Intergalactic Screensaver - Realistic Galaxy Edition</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <canvas id="canvas"></canvas>
     
-    <!-- Main Controls -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-container">
+            <div class="loading-text">
+                <h2>ENGAGING HYPERDRIVE</h2>
+                <p>Initializing galactic systems...</p>
+                <div class="loading-bar">
+                    <div class="loading-progress" id="loadingProgress"></div>
+                </div>
+                <p id="loadingText">0%</p>
+            </div>
+        </div>
+    </div>
+
     <div class="controls">
-        <button id="warpButton" class="warp-btn">⚡ ENGAGE WARP</button>
+        <button id="warpButton" class="warp-btn">⚡ ENGAGE WARP DRIVE</button>
         <button id="pauseButton" class="pause-btn">⏸ PAUSE</button>
         <button id="resetButton" class="reset-btn">🔄 RESET</button>
+        <button id="settingsButton" class="settings-btn">⚙ SETTINGS</button>
         <button id="screensaverButton" class="screensaver-btn">🖥 SCREENSAVER MODE</button>
-        <button id="settingsButton" class="settings-btn">⚙️ SETTINGS</button>
         <button id="fpsButton" class="fps-btn">📊 FPS</button>
+        
+        <div class="stats">
+            <div class="stat">Speed: <span id="speedValue">1.0x</span></div>
+            <div class="stat">Stars: <span id="starCount">0</span></div>
+            <div class="stat">Warp Level: <span id="warpLevel">0</span></div>
+            <div class="stat">Distance: <span id="distance">0.0 ly</span></div>
+            <div class="stat">Max Speed: <span id="maxSpeed">1.0x</span></div>
+        </div>
     </div>
 
-    <!-- Stats Display -->
-    <div class="stats">
-        <div class="stat">Speed: <span id="speedValue">1.0x</span></div>
-        <div class="stat">Stars: <span id="starCount">0</span></div>
-        <div class="stat">Warp: <span id="warpLevel">0</span></div>
-        <div class="stat">Distance: <span id="distance">0 ly</span></div>
-        <div class="stat">Max Speed: <span id="maxSpeed">1.0x</span></div>
-        <div class="stat" id="fpsDisplay" style="display: none;">FPS: <span id="fpsValue">60</span></div>
+    <div id="fpsDisplay" style="display: none;">
+        FPS: <span id="fpsValue">60</span>
     </div>
 
-    <!-- Settings Panel -->
-    <div id="settingsPanel" class="settings-panel hidden">
+    <div class="info-panel">
+        <h1>INTERGALACTIC SCREENSAVER</h1>
+        <p>Navigate through a realistic galaxy</p>
+        <div class="instructions">
+            <p><strong>⚡ WARP:</strong> W or Click Button</p>
+            <p><strong>⏸ PAUSE:</strong> SPACE or Click Button</p>
+            <p><strong>🔄 RESET:</strong> R or Click Button</p>
+            <p><strong>🎨 THEME:</strong> T to cycle</p>
+            <p><strong>🔄 ORBIT:</strong> O for orbital</p>
+            <p><strong>📸 SCREENSHOT:</strong> S to capture</p>
+        </div>
+    </div>
+
+    <div class="settings-panel" id="settingsPanel">
         <div class="settings-content">
-            <h2>⚙️ SETTINGS</h2>
-            
+            <div class="settings-header">
+                <h2>⚙ SETTINGS</h2>
+                <button id="closeSettings" class="close-btn">✕</button>
+            </div>
+
             <div class="settings-group">
                 <label>Theme:</label>
                 <select id="themeSelect">
@@ -46,79 +75,58 @@
             </div>
 
             <div class="settings-group">
-                <label>Star Count: <span id="starCountSlider">50</span></label>
+                <label>Star Count: <span id="starCountSlider">50</span>%</label>
                 <input type="range" id="starCountInput" min="10" max="200" value="50">
             </div>
 
             <div class="settings-group">
                 <label>Effects Intensity: <span id="effectsIntensity">50</span>%</label>
-                <input type="range" id="effectsIntensityInput" min="0" max="100" value="50">
+                <input type="range" id="effectsIntensityInput" min="10" max="100" value="50">
             </div>
 
-            <div class="settings-group">
+            <div class="settings-group checkbox">
                 <label>
-                    <input type="checkbox" id="enableNebula" checked> Enable Nebulas
+                    <input type="checkbox" id="enableNebula" checked>
+                    Enable Nebulas
+                </label>
+            </div>
+
+            <div class="settings-group checkbox">
+                <label>
+                    <input type="checkbox" id="enableBlackHole" checked>
+                    Enable Black Hole
+                </label>
+            </div>
+
+            <div class="settings-group checkbox">
+                <label>
+                    <input type="checkbox" id="enableAsteroids" checked>
+                    Enable Asteroids
+                </label>
+            </div>
+
+            <div class="settings-group checkbox">
+                <label>
+                    <input type="checkbox" id="enableAurora" checked>
+                    Enable Aurora
+                </label>
+            </div>
+
+            <div class="settings-group checkbox">
+                <label>
+                    <input type="checkbox" id="soundEnabled">
+                    Enable Sound
                 </label>
             </div>
 
             <div class="settings-group">
-                <label>
-                    <input type="checkbox" id="enableBlackHole" checked> Enable Black Holes
-                </label>
+                <label>Auto-Warp Delay: <span id="autoWarpTime">30</span>s</label>
+                <input type="range" id="autoWarpDelay" min="5" max="120" value="30">
             </div>
-
-            <div class="settings-group">
-                <label>
-                    <input type="checkbox" id="enableAsteroids" checked> Enable Asteroids
-                </label>
-            </div>
-
-            <div class="settings-group">
-                <label>
-                    <input type="checkbox" id="enableAurora" checked> Enable Aurora
-                </label>
-            </div>
-
-            <div class="settings-group">
-                <label>
-                    <input type="checkbox" id="soundEnabled"> Enable Sound
-                </label>
-            </div>
-
-            <div class="settings-group">
-                <label>Auto-Warp Delay (seconds): <span id="autoWarpTime">30</span></label>
-                <input type="range" id="autoWarpDelay" min="10" max="120" value="30" step="10">
-            </div>
-
-            <button id="closeSettings" class="close-btn">✕ CLOSE</button>
         </div>
     </div>
 
-    <!-- Info Panel -->
-    <div class="info-panel">
-        <h1>🚀 INTERGALACTIC SCREENSAVER</h1>
-        <p>Navigate the cosmos with advanced warp technology</p>
-        <div class="instructions">
-            <p><strong>MOUSE:</strong> Look around | <strong>CLICK:</strong> Hyperjump</p>
-            <p><strong>W:</strong> Warp | <strong>SPACE:</strong> Pause | <strong>R:</strong> Reset</p>
-            <p><strong>T:</strong> Next Theme | <strong>O:</strong> Orbit Mode</p>
-        </div>
-    </div>
-
-    <!-- Loading Screen -->
-    <div id="loadingScreen" class="loading-screen">
-        <div class="loading-content">
-            <div class="loading-spinner"></div>
-            <p>INITIALIZING WARP DRIVE...</p>
-            <div class="loading-bar">
-                <div class="loading-progress" id="loadingProgress"></div>
-            </div>
-            <p id="loadingText">0%</p>
-        </div>
-    </div>
-
-    <!-- Screenshot Notification -->
-    <div id="screenshotNotif" class="screenshot-notif hidden">
+    <div id="screenshotNotif" class="notification hidden">
         📸 Screenshot saved!
     </div>
 

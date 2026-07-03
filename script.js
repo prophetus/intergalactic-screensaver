@@ -15,66 +15,70 @@ class AudioEngine {
         }
     }
 
-    enable() {
-        this.enabled = true;
-    }
-
-    disable() {
-        this.enabled = false;
-    }
+    enable() { this.enabled = true; }
+    disable() { this.enabled = false; }
 
     playWarpSound() {
         if (!this.enabled || !this.audioContext) return;
-        
         const now = this.audioContext.currentTime;
         const osc = this.audioContext.createOscillator();
         const gain = this.audioContext.createGain();
-        
         osc.connect(gain);
         gain.connect(this.audioContext.destination);
-        
         osc.frequency.setValueAtTime(150, now);
         osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
-        
         gain.gain.setValueAtTime(0.3, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-        
         osc.start(now);
         osc.stop(now + 0.1);
     }
 
     playClickSound() {
         if (!this.enabled || !this.audioContext) return;
-        
         const now = this.audioContext.currentTime;
         const osc = this.audioContext.createOscillator();
         const gain = this.audioContext.createGain();
-        
         osc.connect(gain);
         gain.connect(this.audioContext.destination);
-        
         osc.frequency.value = 800;
         gain.gain.setValueAtTime(0.1, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-        
         osc.start(now);
         osc.stop(now + 0.05);
     }
 }
 
-// ============== STAR CLASS ==============
-class Star {
+// ============== REALISTIC STAR CLASS ==============
+class RealisticStar {
     constructor(canvas) {
         this.canvas = canvas;
         this.x = Math.random() * canvas.width - canvas.width / 2;
         this.y = Math.random() * canvas.height - canvas.height / 2;
         this.z = Math.random() * canvas.width;
         this.originalZ = this.z;
-        this.radius = Math.random() * 2 + 0.5;
-        this.hue = Math.random() * 60 + 180;
-        this.brightness = Math.random() * 0.5 + 0.5;
-        this.twinkleSpeed = Math.random() * 0.02 + 0.01;
+        
+        // Realistic star properties
+        this.type = Math.random();
+        if (this.type < 0.7) {
+            // White/yellow stars (common)
+            this.baseColor = { h: Math.random() * 60 + 30, s: 80, l: 70 };
+            this.radius = Math.random() * 1.5 + 0.3;
+            this.brightness = Math.random() * 0.6 + 0.4;
+        } else if (this.type < 0.9) {
+            // Blue/hot stars
+            this.baseColor = { h: 200 + Math.random() * 40, s: 100, l: 60 };
+            this.radius = Math.random() * 2 + 0.8;
+            this.brightness = Math.random() * 0.5 + 0.5;
+        } else {
+            // Red/cool stars
+            this.baseColor = { h: Math.random() * 30, s: 100, l: 50 };
+            this.radius = Math.random() * 1.2 + 0.3;
+            this.brightness = Math.random() * 0.4 + 0.3;
+        }
+        
+        this.twinkleSpeed = Math.random() * 0.02 + 0.005;
         this.twinklePhase = Math.random() * Math.PI * 2;
+        this.scintillation = Math.random() * 0.02;
     }
 
     update(speed) {
@@ -88,207 +92,240 @@ class Star {
         }
     }
 
-    draw(ctx, centerX, centerY, fov, theme) {
+    draw(ctx, centerX, centerY, fov) {
         const scale = fov / this.z;
         const x2d = centerX + this.x * scale;
         const y2d = centerY + this.y * scale;
-        const radius = Math.max(this.radius * scale, 0.5);
+        const radius = Math.max(this.radius * scale, 0.2);
 
+        // Realistic twinkling
         const twinkleFactor = Math.cos(this.twinklePhase) * 0.3 + 0.7;
-        const brightness = this.brightness * twinkleFactor;
+        const scintillation = Math.sin(this.twinklePhase * 0.5 + this.scintillation) * 0.1;
+        const brightness = this.brightness * (twinkleFactor + scintillation);
 
-        let hue = this.hue;
-        if (theme === 'rainbow') {
-            hue = (this.hue + Date.now() * 0.02) % 360;
-        }
+        const { h, s, l } = this.baseColor;
 
-        const gradient = ctx.createRadialGradient(x2d, y2d, 0, x2d, y2d, radius * 3);
-        gradient.addColorStop(0, `hsla(${hue}, 100%, ${brightness * 100}%, ${brightness * 0.6})`);
-        gradient.addColorStop(1, `hsla(${hue}, 100%, ${brightness * 100}%, 0)`);
+        // Realistic star rendering with diffraction
+        const glowGradient = ctx.createRadialGradient(x2d, y2d, 0, x2d, y2d, radius * 4);
+        glowGradient.addColorStop(0, `hsla(${h}, ${s}%, ${l}%, ${brightness * 0.6})`);
+        glowGradient.addColorStop(0.5, `hsla(${h}, ${s}%, ${l}%, ${brightness * 0.2})`);
+        glowGradient.addColorStop(1, `hsla(${h}, ${s}%, ${l}%, 0)`);
         
-        ctx.fillStyle = gradient;
+        ctx.fillStyle = glowGradient;
         ctx.beginPath();
-        ctx.arc(x2d, y2d, radius * 3, 0, Math.PI * 2);
+        ctx.arc(x2d, y2d, radius * 4, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = `hsl(${hue}, 100%, ${brightness * 100}%)`;
+        // Star core
+        ctx.fillStyle = `hsl(${h}, ${s}%, ${Math.min(l + 15, 100)}%)`;
         ctx.beginPath();
         ctx.arc(x2d, y2d, radius, 0, Math.PI * 2);
         ctx.fill();
+
+        // Star spike (diffraction)
+        ctx.strokeStyle = `hsla(${h}, ${s}%, ${l}%, ${brightness * 0.3})`;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(x2d - radius * 3, y2d);
+        ctx.lineTo(x2d + radius * 3, y2d);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x2d, y2d - radius * 3);
+        ctx.lineTo(x2d, y2d + radius * 3);
+        ctx.stroke();
     }
 }
 
-// ============== NEBULA CLASS ==============
-class Nebula {
-    constructor(x, y, size, color) {
+// ============== REALISTIC NEBULA ==============
+class RealisticNebula {
+    constructor(x, y, size, type = 'emission') {
         this.x = x;
         this.y = y;
         this.size = size;
-        this.color = color;
-        this.opacity = Math.random() * 0.3 + 0.1;
-        this.drift = Math.random() * 0.5;
+        this.type = type;
+        this.time = Math.random() * Math.PI * 2;
+        this.opacity = Math.random() * 0.25 + 0.1;
+        this.rotationSpeed = Math.random() * 0.001 + 0.0001;
+        
+        // Color based on type
+        if (type === 'emission') {
+            this.colors = [
+                { r: 255, g: 100, b: 100 },  // Red emission
+                { r: 255, g: 200, b: 100 }   // Orange
+            ];
+        } else if (type === 'reflection') {
+            this.colors = [
+                { r: 100, g: 150, b: 255 },  // Blue reflection
+                { r: 120, g: 180, b: 255 }
+            ];
+        } else {
+            this.colors = [
+                { r: 150, g: 50, b: 100 },   // Dark nebula
+                { r: 100, g: 30, b: 80 }
+            ];
+        }
+    }
+
+    update() {
+        this.time += this.rotationSpeed;
+        this.opacity = Math.sin(this.time) * 0.15 + 0.15;
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        
+        // Create multiple layers for realism
+        for (let layer = 0; layer < 3; layer++) {
+            const color = this.colors[layer % this.colors.length];
+            const layerSize = this.size * (1 - layer * 0.2);
+            const layerOpacity = 1 - (layer * 0.3);
+            
+            const gradient = ctx.createRadialGradient(
+                this.x, this.y, 0,
+                this.x, this.y, layerSize
+            );
+            
+            gradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${layerOpacity * 0.8})`);
+            gradient.addColorStop(0.5, `rgba(${color.r}, ${color.g}, ${color.b}, ${layerOpacity * 0.4})`);
+            gradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, layerSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.restore();
+    }
+}
+
+// ============== DUST LANE ==============
+class DustLane {
+    constructor(canvas, angle) {
+        this.canvas = canvas;
+        this.angle = angle;
+        this.centerX = canvas.width / 2;
+        this.centerY = canvas.height / 2;
+        this.width = canvas.width * 0.6;
+        this.height = 80;
+        this.opacity = 0.3;
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.translate(this.centerX, this.centerY);
+        ctx.rotate(this.angle);
+
+        const gradient = ctx.createLinearGradient(0, -this.height / 2, 0, this.height / 2);
+        gradient.addColorStop(0, 'rgba(20, 20, 30, 0)');
+        gradient.addColorStop(0.3, 'rgba(20, 20, 30, 0.4)');
+        gradient.addColorStop(0.5, 'rgba(10, 10, 20, 0.6)');
+        gradient.addColorStop(0.7, 'rgba(20, 20, 30, 0.4)');
+        gradient.addColorStop(1, 'rgba(20, 20, 30, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+
+        ctx.restore();
+    }
+}
+
+// ============== GALACTIC BULGE ==============
+class GalacticBulge {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.centerX = canvas.width / 2;
+        this.centerY = canvas.height / 2;
         this.time = 0;
     }
 
     update() {
-        this.time += 0.01;
-        this.opacity = Math.sin(this.time) * 0.2 + 0.15;
-    }
-
-    draw(ctx, centerX, centerY) {
-        const gradient = ctx.createRadialGradient(
-            this.x, this.y, 0,
-            this.x, this.y, this.size
-        );
-        
-        gradient.addColorStop(0, `rgba(${this.color}, ${this.opacity})`);
-        gradient.addColorStop(0.5, `rgba(${this.color}, ${this.opacity * 0.5})`);
-        gradient.addColorStop(1, `rgba(${this.color}, 0)`);
-
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-    }
-}
-
-// ============== BLACK HOLE CLASS ==============
-class BlackHole {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.radius = 20;
-        this.rotation = 0;
-    }
-
-    update() {
-        this.rotation += 0.02;
+        this.time += 0.002;
     }
 
     draw(ctx) {
         ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
 
-        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.radius);
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.8)');
-        gradient.addColorStop(0.7, 'rgba(255, 100, 0, 0.3)');
-        gradient.addColorStop(1, 'rgba(255, 200, 0, 0.1)');
+        // Central bulge with realistic colors
+        const bulgeGradient = ctx.createRadialGradient(
+            this.centerX, this.centerY, 0,
+            this.centerX, this.centerY, 150
+        );
+        
+        bulgeGradient.addColorStop(0, 'rgba(255, 200, 100, 0.4)');
+        bulgeGradient.addColorStop(0.3, 'rgba(255, 150, 80, 0.25)');
+        bulgeGradient.addColorStop(0.6, 'rgba(200, 100, 50, 0.15)');
+        bulgeGradient.addColorStop(1, 'rgba(100, 50, 20, 0)');
 
-        ctx.fillStyle = gradient;
+        ctx.fillStyle = bulgeGradient;
         ctx.beginPath();
-        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.arc(this.centerX, this.centerY, 150, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.strokeStyle = 'rgba(255, 150, 0, 0.5)';
-        ctx.lineWidth = 3;
-        for (let i = 0; i < 3; i++) {
-            ctx.beginPath();
-            ctx.arc(0, 0, this.radius + i * 5, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        ctx.restore();
-    }
-
-    gravitationalForce(x, y) {
-        const dx = this.x - x;
-        const dy = this.y - y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const strength = 1000 / (distance * distance + 1);
-        return { x: (dx / distance) * strength, y: (dy / distance) * strength };
-    }
-}
-
-// ============== ASTEROID CLASS ==============
-class Asteroid {
-    constructor(x, y, z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.vx = (Math.random() - 0.5) * 2;
-        this.vy = (Math.random() - 0.5) * 2;
-        this.size = Math.random() * 10 + 5;
-        this.rotation = Math.random() * Math.PI * 2;
-        this.rotationSpeed = (Math.random() - 0.5) * 0.1;
-    }
-
-    update(speed) {
-        this.z -= speed;
-        this.x += this.vx;
-        this.y += this.vy;
-        this.rotation += this.rotationSpeed;
-    }
-
-    draw(ctx, centerX, centerY, fov) {
-        if (this.z <= 0) return;
-
-        const scale = fov / this.z;
-        const x2d = centerX + this.x * scale;
-        const y2d = centerY + this.y * scale;
-        const size = this.size * scale;
-
-        ctx.save();
-        ctx.translate(x2d, y2d);
-        ctx.rotate(this.rotation);
-
-        ctx.fillStyle = 'rgba(150, 120, 100, 0.7)';
-        ctx.fillRect(-size / 2, -size / 2, size, size);
-
-        ctx.strokeStyle = 'rgba(200, 180, 160, 0.5)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(-size / 2, -size / 2, size, size);
-
         ctx.restore();
     }
 }
 
-// ============== AURORA CLASS ==============
-class Aurora {
-    constructor(canvas) {
+// ============== GALACTIC ARM ==============
+class GalacticArm {
+    constructor(canvas, angle, color) {
         this.canvas = canvas;
-        this.waves = [];
-        for (let i = 0; i < 5; i++) {
-            this.waves.push({
-                y: Math.random() * canvas.height,
-                amplitude: 30,
-                frequency: Math.random() * 0.02 + 0.01,
-                phase: Math.random() * Math.PI * 2,
-                hue: Math.random() * 60 + 180
+        this.startAngle = angle;
+        this.color = color;
+        this.time = 0;
+        this.starCount = 30;
+        this.stars = [];
+        this.regenerateStars();
+    }
+
+    regenerateStars() {
+        this.stars = [];
+        for (let i = 0; i < this.starCount; i++) {
+            const distance = (Math.random() * 200 + 100);
+            const angleOffset = Math.random() * 0.3;
+            this.stars.push({
+                distance,
+                angleOffset,
+                brightness: Math.random() * 0.5 + 0.3
             });
         }
     }
 
-    update() {
-        this.waves.forEach(wave => {
-            wave.phase += wave.frequency;
-        });
-    }
+    draw(ctx, centerX, centerY) {
+        ctx.save();
 
-    draw(ctx) {
-        ctx.globalAlpha = 0.15;
-        this.waves.forEach(wave => {
-            const gradient = ctx.createLinearGradient(0, wave.y - 100, 0, wave.y + 100);
-            gradient.addColorStop(0, `hsla(${wave.hue}, 100%, 50%, 0)`);
-            gradient.addColorStop(0.5, `hsla(${wave.hue}, 100%, 50%, 0.8)`);
-            gradient.addColorStop(1, `hsla(${wave.hue}, 100%, 50%, 0)`);
+        // Draw arm structure
+        const armGradient = ctx.createLinearGradient(
+            centerX + Math.cos(this.startAngle) * 50,
+            centerY + Math.sin(this.startAngle) * 50,
+            centerX + Math.cos(this.startAngle) * 200,
+            centerY + Math.sin(this.startAngle) * 200
+        );
 
-            ctx.fillStyle = gradient;
+        const { r, g, b } = this.color;
+        armGradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.2)`);
+        armGradient.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, 0.15)`);
+        armGradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+
+        // Draw stars along arm
+        this.stars.forEach(star => {
+            const angle = this.startAngle + star.angleOffset;
+            const x = centerX + Math.cos(angle) * star.distance;
+            const y = centerY + Math.sin(angle) * star.distance;
+
+            ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${star.brightness * 0.6})`;
             ctx.beginPath();
-            for (let x = 0; x < this.canvas.width; x += 10) {
-                const y = wave.y + Math.sin((x * 0.01) + wave.phase) * wave.amplitude;
-                if (x === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.lineTo(this.canvas.width, this.canvas.height);
-            ctx.lineTo(0, this.canvas.height);
+            ctx.arc(x, y, 1.5, 0, Math.PI * 2);
             ctx.fill();
         });
-        ctx.globalAlpha = 1.0;
+
+        ctx.restore();
     }
 }
 
-// ============== WARP TRAIL CLASS ==============
+// ============== WARP TRAIL ==============
 class WarpTrail {
     constructor(x, y, color, life = 30) {
         this.x = x;
@@ -299,9 +336,7 @@ class WarpTrail {
         this.radius = Math.random() * 3 + 2;
     }
 
-    update() {
-        this.life--;
-    }
+    update() { this.life--; }
 
     draw(ctx) {
         const opacity = this.life / this.maxLife;
@@ -311,9 +346,7 @@ class WarpTrail {
         ctx.fill();
     }
 
-    isAlive() {
-        return this.life > 0;
-    }
+    isAlive() { return this.life > 0; }
 }
 
 // ============== MAIN SCREENSAVER CLASS ==============
@@ -337,9 +370,15 @@ class IntergalacticScreensaver {
         };
         
         this.loadSettings();
-        
         this.setupCanvas();
-        this.initializeStars();
+        
+        // Galaxy elements
+        this.stars = [];
+        this.nebulas = [];
+        this.dustLanes = [];
+        this.galacticBulge = null;
+        this.galacticArms = [];
+        this.trails = [];
         
         this.speed = 5;
         this.targetSpeed = 5;
@@ -348,7 +387,6 @@ class IntergalacticScreensaver {
         this.isPaused = false;
         this.isScreensaverMode = false;
         this.inactivityTimer = 0;
-        this.trails = [];
         this.distance = 0;
         this.orbitMode = false;
         
@@ -356,18 +394,12 @@ class IntergalacticScreensaver {
         this.lastFpsTime = Date.now();
         this.showFps = false;
         
-        this.nebulas = [];
-        this.blackHoles = [];
-        this.asteroids = [];
-        this.aurora = null;
-        
-        this.initializeEnvironment();
-        
         this.mouseX = this.canvas.width / 2;
         this.mouseY = this.canvas.height / 2;
         this.targetMouseX = this.canvas.width / 2;
         this.targetMouseY = this.canvas.height / 2;
         
+        this.initializeGalaxy();
         this.setupEventListeners();
         this.setupLoadingScreen();
         this.animate();
@@ -394,56 +426,57 @@ class IntergalacticScreensaver {
         });
     }
 
-    initializeStars() {
-        this.stars = [];
+    initializeGalaxy() {
+        // Create realistic stars
         const starCount = Math.floor((this.canvas.width * this.canvas.height) / (3000 / (this.settings.starMultiplier / 50)));
+        this.stars = [];
         for (let i = 0; i < starCount; i++) {
-            this.stars.push(new Star(this.canvas));
-        }
-    }
-
-    initializeEnvironment() {
-        if (this.settings.enableNebula) {
-            this.nebulas = [];
-            for (let i = 0; i < 5; i++) {
-                const colors = ['100, 150, 255', '200, 50, 200', '0, 255, 150', '255, 100, 100'];
-                this.nebulas.push(new Nebula(
-                    Math.random() * this.canvas.width,
-                    Math.random() * this.canvas.height,
-                    Math.random() * 200 + 100,
-                    colors[Math.floor(Math.random() * colors.length)]
-                ));
-            }
+            this.stars.push(new RealisticStar(this.canvas));
         }
 
-        if (this.settings.enableBlackHole) {
-            this.blackHoles = [];
-            for (let i = 0; i < 2; i++) {
-                this.blackHoles.push(new BlackHole(
-                    Math.random() * this.canvas.width,
-                    Math.random() * this.canvas.height
-                ));
-            }
+        // Create nebulas
+        this.nebulas = [];
+        const nebulasCount = 8;
+        for (let i = 0; i < nebulasCount; i++) {
+            const types = ['emission', 'reflection', 'dark'];
+            this.nebulas.push(new RealisticNebula(
+                Math.random() * this.canvas.width,
+                Math.random() * this.canvas.height,
+                Math.random() * 150 + 80,
+                types[Math.floor(Math.random() * types.length)]
+            ));
         }
 
-        if (this.settings.enableAsteroids) {
-            this.asteroids = [];
-            for (let i = 0; i < 20; i++) {
-                this.asteroids.push(new Asteroid(
-                    (Math.random() - 0.5) * this.canvas.width,
-                    (Math.random() - 0.5) * this.canvas.height,
-                    Math.random() * this.canvas.width
-                ));
-            }
+        // Create dust lanes
+        this.dustLanes = [];
+        for (let i = 0; i < 4; i++) {
+            this.dustLanes.push(new DustLane(this.canvas, (Math.PI * 2 / 4) * i));
         }
 
-        if (this.settings.enableAurora) {
-            this.aurora = new Aurora(this.canvas);
+        // Galactic bulge
+        this.galacticBulge = new GalacticBulge(this.canvas);
+
+        // Galactic arms
+        this.galacticArms = [];
+        const armColors = [
+            { r: 200, g: 100, b: 255 },
+            { r: 100, g: 200, b: 255 },
+            { r: 255, g: 150, b: 100 },
+            { r: 100, g: 255, b: 200 }
+        ];
+        
+        for (let i = 0; i < 4; i++) {
+            this.galacticArms.push(new GalacticArm(
+                this.canvas,
+                (Math.PI * 2 / 4) * i,
+                armColors[i]
+            ));
         }
     }
 
     setupLoadingScreen() {
         const loadingScreen = document.getElementById('loadingScreen');
+        if (!loadingScreen) return;
         let progress = 0;
         const interval = setInterval(() => {
             progress += Math.random() * 30;
@@ -454,77 +487,79 @@ class IntergalacticScreensaver {
                     loadingScreen.classList.add('hidden');
                 }, 500);
             }
-            document.getElementById('loadingProgress').style.width = progress + '%';
-            document.getElementById('loadingText').textContent = Math.floor(progress) + '%';
+            const progressBar = document.getElementById('loadingProgress');
+            const progressText = document.getElementById('loadingText');
+            if (progressBar) progressBar.style.width = progress + '%';
+            if (progressText) progressText.textContent = Math.floor(progress) + '%';
         }, 100);
     }
 
     setupEventListeners() {
-        document.getElementById('warpButton').addEventListener('click', () => this.engageWarp());
-        document.getElementById('pauseButton').addEventListener('click', () => this.togglePause());
-        document.getElementById('resetButton').addEventListener('click', () => this.reset());
-        document.getElementById('screensaverButton').addEventListener('click', () => this.toggleScreensaverMode());
-        document.getElementById('settingsButton').addEventListener('click', () => this.openSettings());
-        document.getElementById('fpsButton').addEventListener('click', () => this.toggleFpsCounter());
-        document.getElementById('closeSettings').addEventListener('click', () => this.closeSettings());
+        const warpBtn = document.getElementById('warpButton');
+        const pauseBtn = document.getElementById('pauseButton');
+        const resetBtn = document.getElementById('resetButton');
+        const settingsBtn = document.getElementById('settingsButton');
+        const screensaverBtn = document.getElementById('screensaverButton');
+        const fpsBtn = document.getElementById('fpsButton');
+        const closeSettings = document.getElementById('closeSettings');
 
-        document.getElementById('themeSelect').addEventListener('change', (e) => {
-            this.settings.theme = e.target.value;
-            this.saveSettings();
-        });
+        if (warpBtn) warpBtn.addEventListener('click', () => this.engageWarp());
+        if (pauseBtn) pauseBtn.addEventListener('click', () => this.togglePause());
+        if (resetBtn) resetBtn.addEventListener('click', () => this.reset());
+        if (settingsBtn) settingsBtn.addEventListener('click', () => this.openSettings());
+        if (screensaverBtn) screensaverBtn.addEventListener('click', () => this.toggleScreensaverMode());
+        if (fpsBtn) fpsBtn.addEventListener('click', () => this.toggleFpsCounter());
+        if (closeSettings) closeSettings.addEventListener('click', () => this.closeSettings());
 
-        document.getElementById('starCountInput').addEventListener('input', (e) => {
-            this.settings.starMultiplier = parseInt(e.target.value);
-            document.getElementById('starCountSlider').textContent = e.target.value;
-            this.initializeStars();
-            this.saveSettings();
-        });
+        const themeSelect = document.getElementById('themeSelect');
+        if (themeSelect) {
+            themeSelect.addEventListener('change', (e) => {
+                this.settings.theme = e.target.value;
+                this.saveSettings();
+            });
+        }
 
-        document.getElementById('effectsIntensityInput').addEventListener('input', (e) => {
-            this.settings.effectsIntensity = parseInt(e.target.value);
-            document.getElementById('effectsIntensity').textContent = e.target.value;
-            this.saveSettings();
-        });
+        const starCountInput = document.getElementById('starCountInput');
+        if (starCountInput) {
+            starCountInput.addEventListener('input', (e) => {
+                this.settings.starMultiplier = parseInt(e.target.value);
+                const slider = document.getElementById('starCountSlider');
+                if (slider) slider.textContent = e.target.value;
+                this.initializeGalaxy();
+                this.saveSettings();
+            });
+        }
 
-        document.getElementById('enableNebula').addEventListener('change', (e) => {
-            this.settings.enableNebula = e.target.checked;
-            this.initializeEnvironment();
-            this.saveSettings();
-        });
+        const effectsIntensityInput = document.getElementById('effectsIntensityInput');
+        if (effectsIntensityInput) {
+            effectsIntensityInput.addEventListener('input', (e) => {
+                this.settings.effectsIntensity = parseInt(e.target.value);
+                const intensity = document.getElementById('effectsIntensity');
+                if (intensity) intensity.textContent = e.target.value;
+                this.saveSettings();
+            });
+        }
 
-        document.getElementById('enableBlackHole').addEventListener('change', (e) => {
-            this.settings.enableBlackHole = e.target.checked;
-            this.initializeEnvironment();
-            this.saveSettings();
-        });
+        const enableNebula = document.getElementById('enableNebula');
+        if (enableNebula) {
+            enableNebula.addEventListener('change', (e) => {
+                this.settings.enableNebula = e.target.checked;
+                this.saveSettings();
+            });
+        }
 
-        document.getElementById('enableAsteroids').addEventListener('change', (e) => {
-            this.settings.enableAsteroids = e.target.checked;
-            this.initializeEnvironment();
-            this.saveSettings();
-        });
-
-        document.getElementById('enableAurora').addEventListener('change', (e) => {
-            this.settings.enableAurora = e.target.checked;
-            this.initializeEnvironment();
-            this.saveSettings();
-        });
-
-        document.getElementById('soundEnabled').addEventListener('change', (e) => {
-            this.settings.soundEnabled = e.target.checked;
-            if (e.target.checked) {
-                this.audio.enable();
-            } else {
-                this.audio.disable();
-            }
-            this.saveSettings();
-        });
-
-        document.getElementById('autoWarpDelay').addEventListener('input', (e) => {
-            this.settings.autoWarpDelay = parseInt(e.target.value);
-            document.getElementById('autoWarpTime').textContent = e.target.value;
-            this.saveSettings();
-        });
+        const soundEnabled = document.getElementById('soundEnabled');
+        if (soundEnabled) {
+            soundEnabled.addEventListener('change', (e) => {
+                this.settings.soundEnabled = e.target.checked;
+                if (e.target.checked) {
+                    this.audio.enable();
+                } else {
+                    this.audio.disable();
+                }
+                this.saveSettings();
+            });
+        }
 
         document.addEventListener('keydown', (e) => {
             this.inactivityTimer = 0;
@@ -535,7 +570,6 @@ class IntergalacticScreensaver {
             if (e.key === 't' || e.key === 'T') this.nextTheme();
             if (e.key === 'o' || e.key === 'O') this.toggleOrbitMode();
             if (e.key === 's' || e.key === 'S') this.takeScreenshot();
-            if (e.key === '\\') this.toggleScreensaverMode();
         });
 
         document.addEventListener('mousemove', (e) => {
@@ -585,7 +619,6 @@ class IntergalacticScreensaver {
             const x = centerX + Math.cos(angle) * radius;
             const y = centerY + Math.sin(angle) * radius;
             
-            const hue = (this.warpLevel * 30 + angle * 180 / Math.PI) % 360;
             this.trails.push(new WarpTrail(x, y, `0, 255, ${100 + this.warpLevel * 30}`, 40));
         }
     }
@@ -593,31 +626,37 @@ class IntergalacticScreensaver {
     togglePause() {
         this.isPaused = !this.isPaused;
         const pauseBtn = document.getElementById('pauseButton');
-        pauseBtn.textContent = this.isPaused ? '▶ RESUME' : '⏸ PAUSE';
-        pauseBtn.style.background = this.isPaused 
-            ? 'linear-gradient(135deg, #00ff00, #00cc00)' 
-            : 'linear-gradient(135deg, #ff6600, #ff3300)';
+        if (pauseBtn) {
+            pauseBtn.textContent = this.isPaused ? '▶ RESUME' : '⏸ PAUSE';
+            pauseBtn.style.background = this.isPaused 
+                ? 'linear-gradient(135deg, #00ff00, #00cc00)' 
+                : 'linear-gradient(135deg, #ff6600, #ff3300)';
+        }
     }
 
     toggleScreensaverMode() {
         this.isScreensaverMode = !this.isScreensaverMode;
         const btn = document.getElementById('screensaverButton');
-        btn.textContent = this.isScreensaverMode ? '🖥 MODE: ON' : '🖥 SCREENSAVER MODE';
-        btn.style.background = this.isScreensaverMode 
-            ? 'linear-gradient(135deg, #00ff00, #00cc00)' 
-            : 'linear-gradient(135deg, #ff00ff, #ff0099)';
+        if (btn) {
+            btn.textContent = this.isScreensaverMode ? '🖥 MODE: ON' : '🖥 SCREENSAVER MODE';
+            btn.style.background = this.isScreensaverMode 
+                ? 'linear-gradient(135deg, #00ff00, #00cc00)' 
+                : 'linear-gradient(135deg, #ff00ff, #ff0099)';
+        }
     }
 
     toggleFpsCounter() {
         this.showFps = !this.showFps;
-        document.getElementById('fpsDisplay').style.display = this.showFps ? 'block' : 'none';
+        const fps = document.getElementById('fpsDisplay');
+        if (fps) fps.style.display = this.showFps ? 'block' : 'none';
     }
 
     nextTheme() {
         const themes = ['cyan', 'purple', 'green', 'rainbow', 'red'];
         const currentIndex = themes.indexOf(this.settings.theme);
         this.settings.theme = themes[(currentIndex + 1) % themes.length];
-        document.getElementById('themeSelect').value = this.settings.theme;
+        const select = document.getElementById('themeSelect');
+        if (select) select.value = this.settings.theme;
         this.saveSettings();
     }
 
@@ -636,25 +675,20 @@ class IntergalacticScreensaver {
         link.click();
         
         const notif = document.getElementById('screenshotNotif');
-        notif.classList.remove('hidden');
-        setTimeout(() => notif.classList.add('hidden'), 2000);
+        if (notif) {
+            notif.classList.remove('hidden');
+            setTimeout(() => notif.classList.add('hidden'), 2000);
+        }
     }
 
     openSettings() {
-        document.getElementById('settingsPanel').classList.remove('hidden');
-        document.getElementById('themeSelect').value = this.settings.theme;
-        document.getElementById('starCountInput').value = this.settings.starMultiplier;
-        document.getElementById('effectsIntensityInput').value = this.settings.effectsIntensity;
-        document.getElementById('enableNebula').checked = this.settings.enableNebula;
-        document.getElementById('enableBlackHole').checked = this.settings.enableBlackHole;
-        document.getElementById('enableAsteroids').checked = this.settings.enableAsteroids;
-        document.getElementById('enableAurora').checked = this.settings.enableAurora;
-        document.getElementById('soundEnabled').checked = this.settings.soundEnabled;
-        document.getElementById('autoWarpDelay').value = this.settings.autoWarpDelay;
+        const panel = document.getElementById('settingsPanel');
+        if (panel) panel.classList.remove('hidden');
     }
 
     closeSettings() {
-        document.getElementById('settingsPanel').classList.add('hidden');
+        const panel = document.getElementById('settingsPanel');
+        if (panel) panel.classList.add('hidden');
     }
 
     reset() {
@@ -667,19 +701,30 @@ class IntergalacticScreensaver {
         this.orbitMode = false;
         this.inactivityTimer = 0;
         
-        document.getElementById('pauseButton').textContent = '⏸ PAUSE';
-        document.getElementById('pauseButton').style.background = 'linear-gradient(135deg, #ff6600, #ff3300)';
+        const pauseBtn = document.getElementById('pauseButton');
+        if (pauseBtn) {
+            pauseBtn.textContent = '⏸ PAUSE';
+            pauseBtn.style.background = 'linear-gradient(135deg, #ff6600, #ff3300)';
+        }
         
-        this.initializeStars();
-        this.initializeEnvironment();
+        this.initializeGalaxy();
     }
 
     updateStats() {
-        document.getElementById('speedValue').textContent = this.speed.toFixed(1) + 'x';
-        document.getElementById('starCount').textContent = this.stars.length;
-        document.getElementById('warpLevel').textContent = this.warpLevel;
-        document.getElementById('distance').textContent = (this.distance / 1000).toFixed(1) + ' ly';
-        document.getElementById('maxSpeed').textContent = this.maxSpeed.toFixed(1) + 'x';
+        const speedValue = document.getElementById('speedValue');
+        if (speedValue) speedValue.textContent = this.speed.toFixed(1) + 'x';
+        
+        const starCount = document.getElementById('starCount');
+        if (starCount) starCount.textContent = this.stars.length;
+        
+        const warpLevel = document.getElementById('warpLevel');
+        if (warpLevel) warpLevel.textContent = this.warpLevel;
+        
+        const distance = document.getElementById('distance');
+        if (distance) distance.textContent = (this.distance / 1000).toFixed(1) + ' ly';
+        
+        const maxSpeed = document.getElementById('maxSpeed');
+        if (maxSpeed) maxSpeed.textContent = this.maxSpeed.toFixed(1) + 'x';
     }
 
     update() {
@@ -708,17 +753,8 @@ class IntergalacticScreensaver {
             this.distance += this.speed;
 
             this.stars.forEach(star => star.update(this.speed));
-
-            this.asteroids.forEach(asteroid => {
-                asteroid.update(this.speed);
-                if (asteroid.z <= 0) {
-                    asteroid.z = this.canvas.width;
-                }
-            });
-
-            this.blackHoles.forEach(bh => bh.update());
             this.nebulas.forEach(nebula => nebula.update());
-            if (this.aurora) this.aurora.update();
+            this.galacticBulge.update();
 
             this.trails = this.trails.filter(trail => {
                 trail.update();
@@ -746,7 +782,8 @@ class IntergalacticScreensaver {
         this.fpsCounter++;
         const now = Date.now();
         if (now - this.lastFpsTime >= 1000) {
-            document.getElementById('fpsValue').textContent = this.fpsCounter;
+            const fpsValue = document.getElementById('fpsValue');
+            if (fpsValue) fpsValue.textContent = this.fpsCounter;
             this.fpsCounter = 0;
             this.lastFpsTime = now;
         }
@@ -755,33 +792,37 @@ class IntergalacticScreensaver {
     }
 
     draw() {
-        this.ctx.fillStyle = '#000011';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
-        gradient.addColorStop(0, 'rgba(0, 0, 50, 0.1)');
-        gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0)');
-        gradient.addColorStop(1, 'rgba(0, 20, 40, 0.1)');
-        this.ctx.fillStyle = gradient;
+        // Deep space background
+        this.ctx.fillStyle = '#000005';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         const centerX = this.canvas.width / 2;
         const centerY = this.canvas.height / 2;
-        const fov = 300;
 
         if (this.orbitMode) {
             this.ctx.save();
             this.ctx.translate(centerX, centerY);
-            this.ctx.rotate(Date.now() * 0.0001);
+            this.ctx.rotate(Date.now() * 0.00005);
             this.ctx.translate(-centerX, -centerY);
         }
 
-        this.nebulas.forEach(nebula => nebula.draw(this.ctx, centerX, centerY));
-        if (this.aurora) this.aurora.draw(this.ctx);
+        // Draw galaxy structure
+        this.galacticBulge.draw(this.ctx);
+        this.galacticArms.forEach(arm => arm.draw(this.ctx, centerX, centerY));
+        
+        // Draw dust lanes
+        this.dustLanes.forEach(lane => lane.draw(this.ctx));
+
+        // Draw nebulas
+        if (this.settings.enableNebula) {
+            this.nebulas.forEach(nebula => nebula.draw(this.ctx));
+        }
+
+        // Draw stars
+        this.stars.forEach(star => star.draw(this.ctx, centerX, centerY, 300));
+
+        // Draw trails
         this.trails.forEach(trail => trail.draw(this.ctx));
-        this.stars.forEach(star => star.draw(this.ctx, centerX, centerY, fov, this.settings.theme));
-        this.asteroids.forEach(asteroid => asteroid.draw(this.ctx, centerX, centerY, fov));
-        this.blackHoles.forEach(bh => bh.draw(this.ctx));
 
         if (this.orbitMode) {
             this.ctx.restore();

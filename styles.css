@@ -16,29 +16,88 @@ canvas {
     display: block;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to bottom, #000033, #000011);
+    background: linear-gradient(to bottom, #000033, #000005);
 }
 
-/* Controls */
+/* ============== LOADING SCREEN ============== */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #000033, #000011);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 0.5s ease;
+}
+
+.loading-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-container {
+    text-align: center;
+    color: #00ffff;
+}
+
+.loading-text h2 {
+    font-size: 32px;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+}
+
+.loading-text p {
+    font-size: 14px;
+    margin-bottom: 20px;
+    color: #00ff88;
+}
+
+.loading-bar {
+    width: 300px;
+    height: 10px;
+    border: 2px solid #00ffff;
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 20px auto;
+}
+
+.loading-progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00ffff, #0099ff);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+    transition: width 0.1s linear;
+}
+
+#loadingText {
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+/* ============== CONTROLS ============== */
 .controls {
     position: absolute;
     top: 20px;
     left: 20px;
     display: flex;
-    gap: 10px;
+    gap: 15px;
     align-items: center;
     z-index: 10;
     flex-wrap: wrap;
 }
 
 button {
-    padding: 10px 16px;
+    padding: 12px 20px;
     border: none;
     border-radius: 5px;
     font-family: 'Courier New', monospace;
     font-weight: bold;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 14px;
     transition: all 0.3s ease;
     box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
     white-space: nowrap;
@@ -55,6 +114,11 @@ button {
     transform: scale(1.05);
 }
 
+.warp-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 0 40px rgba(0, 255, 255, 1);
+}
+
 .pause-btn {
     background: linear-gradient(135deg, #ff6600, #ff3300);
     color: #fff;
@@ -62,7 +126,7 @@ button {
 }
 
 .pause-btn:hover {
-    box-shadow: 0 0 25px rgba(255, 102, 0, 0.8);
+    box-shadow: 0 0 25px rgba(255, 102, 0, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.3);
     transform: scale(1.05);
 }
 
@@ -73,7 +137,18 @@ button {
 }
 
 .reset-btn:hover {
-    box-shadow: 0 0 25px rgba(0, 255, 0, 0.8);
+    box-shadow: 0 0 25px rgba(0, 255, 0, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.settings-btn {
+    background: linear-gradient(135deg, #ff9900, #ff6600);
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 150, 0, 0.8);
+}
+
+.settings-btn:hover {
+    box-shadow: 0 0 25px rgba(255, 150, 0, 0.8);
     transform: scale(1.05);
 }
 
@@ -88,47 +163,31 @@ button {
     transform: scale(1.05);
 }
 
-.settings-btn {
-    background: linear-gradient(135deg, #ffaa00, #ff6600);
-    color: #fff;
-    text-shadow: 0 0 10px rgba(255, 170, 0, 0.8);
-}
-
-.settings-btn:hover {
-    box-shadow: 0 0 25px rgba(255, 170, 0, 0.8);
-    transform: scale(1.05);
-}
-
 .fps-btn {
-    background: linear-gradient(135deg, #00aa88, #00ff88);
+    background: linear-gradient(135deg, #00cc99, #00ff99);
     color: #000;
-    text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+    text-shadow: 0 0 10px rgba(0, 255, 153, 0.8);
 }
 
 .fps-btn:hover {
-    box-shadow: 0 0 25px rgba(0, 255, 136, 0.8);
+    box-shadow: 0 0 25px rgba(0, 255, 153, 0.8);
     transform: scale(1.05);
 }
 
-/* Stats */
+/* ============== STATS ============== */
 .stats {
-    position: absolute;
-    top: 20px;
-    right: 20px;
     display: flex;
-    gap: 20px;
+    gap: 30px;
+    margin-left: 20px;
     padding: 15px 25px;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.7);
     border-radius: 5px;
     border: 2px solid rgba(0, 255, 255, 0.3);
-    z-index: 10;
-    flex-wrap: wrap;
-    justify-content: flex-end;
 }
 
 .stat {
     color: #00ffff;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: bold;
     text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
@@ -138,125 +197,7 @@ button {
     margin-left: 5px;
 }
 
-/* Settings Panel */
-.settings-panel {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    opacity: 1;
-    transition: opacity 0.3s ease;
-}
-
-.settings-panel.hidden {
-    display: none;
-    opacity: 0;
-}
-
-.settings-content {
-    background: rgba(0, 20, 40, 0.9);
-    border: 2px solid rgba(0, 255, 255, 0.5);
-    border-radius: 10px;
-    padding: 30px;
-    max-width: 500px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 0 40px rgba(0, 255, 255, 0.3);
-}
-
-.settings-content h2 {
-    color: #00ffff;
-    margin-bottom: 25px;
-    text-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
-    font-size: 24px;
-}
-
-.settings-group {
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.settings-group label {
-    color: #00ff88;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.settings-group input[type="range"] {
-    width: 100%;
-    height: 6px;
-    background: rgba(0, 255, 255, 0.2);
-    outline: none;
-    border-radius: 3px;
-    -webkit-appearance: none;
-}
-
-.settings-group input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    background: linear-gradient(135deg, #00ffff, #0099ff);
-    cursor: pointer;
-    border-radius: 50%;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
-}
-
-.settings-group input[type="range"]::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    background: linear-gradient(135deg, #00ffff, #0099ff);
-    cursor: pointer;
-    border-radius: 50%;
-    border: none;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
-}
-
-.settings-group select {
-    padding: 10px;
-    background: rgba(0, 50, 80, 0.8);
-    color: #00ffff;
-    border: 1px solid rgba(0, 255, 255, 0.5);
-    border-radius: 3px;
-    font-family: 'Courier New', monospace;
-    font-size: 13px;
-}
-
-.settings-group select option {
-    background: #000033;
-    color: #00ffff;
-}
-
-.settings-group input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    accent-color: #00ffff;
-}
-
-.close-btn {
-    width: 100%;
-    margin-top: 20px;
-    background: linear-gradient(135deg, #ff3300, #ff0000);
-    color: #fff;
-    padding: 12px;
-    font-size: 14px;
-}
-
-.close-btn:hover {
-    box-shadow: 0 0 25px rgba(255, 51, 0, 0.8);
-}
-
-/* Info Panel */
+/* ============== INFO PANEL ============== */
 .info-panel {
     position: absolute;
     bottom: 30px;
@@ -296,136 +237,188 @@ button {
     color: #00ffff;
 }
 
-/* Loading Screen */
-.loading-screen {
+/* ============== SETTINGS PANEL ============== */
+.settings-panel {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #000011;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    transition: opacity 0.5s ease;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 20, 40, 0.95);
+    border: 3px solid #00ffff;
+    border-radius: 10px;
+    padding: 30px;
+    z-index: 999;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 0 40px rgba(0, 255, 255, 0.5);
 }
 
-.loading-screen.hidden {
+.settings-panel.hidden {
     display: none;
-    opacity: 0;
-    pointer-events: none;
 }
 
-.loading-content {
-    text-align: center;
-}
-
-.loading-spinner {
-    width: 60px;
-    height: 60px;
-    border: 4px solid rgba(0, 255, 255, 0.2);
-    border-top: 4px solid #00ffff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.loading-screen p {
+.settings-content h2 {
     color: #00ffff;
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    margin: 20px 0;
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+    border-bottom: 2px solid #00ffff;
+    padding-bottom: 10px;
 }
 
-.loading-bar {
-    width: 300px;
-    height: 10px;
-    background: rgba(0, 255, 255, 0.1);
-    border: 1px solid rgba(0, 255, 255, 0.3);
+.settings-group {
+    margin-bottom: 20px;
+    color: #00ff88;
+}
+
+.settings-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #00ffff;
+}
+
+.settings-group input[type="range"] {
+    width: 100%;
+    height: 8px;
     border-radius: 5px;
-    margin: 20px auto;
-    overflow: hidden;
+    background: linear-gradient(to right, #000033, #00ffff);
+    outline: none;
+    cursor: pointer;
 }
 
-.loading-progress {
-    height: 100%;
-    background: linear-gradient(90deg, #00ffff, #0099ff);
-    width: 0%;
-    transition: width 0.2s ease;
+.settings-group input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #00ffff;
+    cursor: pointer;
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
 }
 
-/* Screenshot Notification */
-.screenshot-notif {
+.settings-group input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #00ffff;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+.settings-group select {
+    width: 100%;
+    padding: 10px;
+    background: #000033;
+    color: #00ffff;
+    border: 2px solid #00ffff;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    cursor: pointer;
+}
+
+.settings-group.checkbox {
+    display: flex;
+    align-items: center;
+}
+
+.settings-group.checkbox input[type="checkbox"] {
+    margin-right: 10px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #00ffff;
+}
+
+.settings-group.checkbox label {
+    margin-bottom: 0;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.close-btn {
+    background: linear-gradient(135deg, #ff3300, #ff0000) !important;
+    color: #fff !important;
+    padding: 8px 12px !important;
+    font-size: 16px !important;
+    box-shadow: 0 0 15px rgba(255, 51, 0, 0.8) !important;
+}
+
+.close-btn:hover {
+    box-shadow: 0 0 25px rgba(255, 51, 0, 1) !important;
+}
+
+/* ============== FPS DISPLAY ============== */
+#fpsDisplay {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(0, 255, 0, 0.5);
+    border-radius: 5px;
+    color: #00ff88;
+    font-weight: bold;
+    z-index: 10;
+}
+
+/* ============== NOTIFICATIONS ============== */
+.notification {
     position: fixed;
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
-    background: linear-gradient(135deg, #00ff00, #00cc00);
-    color: #000;
+    background: rgba(0, 100, 0, 0.9);
+    color: #00ff88;
     padding: 15px 30px;
+    border: 2px solid #00ff00;
     border-radius: 5px;
     font-weight: bold;
     z-index: 100;
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
-    animation: slideUp 2s ease;
+    transition: opacity 0.3s ease;
 }
 
-.screenshot-notif.hidden {
+.notification.hidden {
     display: none;
 }
 
-@keyframes slideUp {
-    0% {
-        transform: translateX(-50%) translateY(100px);
-        opacity: 0;
-    }
-    10% {
-        opacity: 1;
-    }
-    90% {
-        opacity: 1;
-    }
-    100% {
-        transform: translateX(-50%) translateY(-100px);
-        opacity: 0;
-    }
-}
-
-/* Responsive */
+/* ============== RESPONSIVE ============== */
 @media (max-width: 768px) {
     .controls {
-        top: 10px;
-        left: 10px;
-        gap: 5px;
-    }
-
-    button {
-        padding: 8px 12px;
-        font-size: 10px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
     }
 
     .stats {
-        top: 10px;
-        right: 10px;
+        flex-direction: column;
         gap: 10px;
-        padding: 10px 15px;
-        font-size: 10px;
+        margin-left: 0;
     }
 
     .info-panel {
         display: none;
     }
 
-    .settings-content {
+    button {
+        width: 100%;
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .settings-panel {
+        max-width: 90vw;
         padding: 20px;
-        max-width: 90%;
+    }
+
+    .settings-content h2 {
+        font-size: 20px;
     }
 }
